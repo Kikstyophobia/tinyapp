@@ -4,6 +4,16 @@ const PORT = 8080;
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
+function generateRandomString() {
+  let text = "";
+  let possible = "abcdefghijklmnopqrstuvwxyz0123456789";
+
+  for (let i = 0; i < 6; i++) {
+    text += possible.charAt(Math.random() * possible.length);
+  }
+  return text;
+};
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -11,10 +21,10 @@ const urlDatabase = {
 
 app.set("view engine", "ejs");
 
-app.post("/urls", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
-});
+// app.post("/urls", (req, res) => {
+//   console.log(req.body);  // Log the POST request body to the console
+//   res.send(urlDatabase[req.params.shortURL]);         
+// });
 
 app.get("/hello", (req, res) => {
   const templateVars = { greeting: 'Hello World!' };
