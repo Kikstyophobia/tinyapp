@@ -19,9 +19,16 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+
 // registers a handler on the root path "/"
 app.get("/", (req, res) => {
   res.send("Hello!");
+});
+
+//app.get("/urls/:abc"
+app.get("/urls/:shortURL", (req, res) => {
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  res.render("urls_show", templateVars);
 });
 
 app.listen(PORT, () => {
