@@ -28,9 +28,7 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL]
-  console.log("params:", req.params)
-  console.log("short url:", req.params.shortURL)
+  const longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
 });
 
@@ -45,12 +43,19 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
+  console.log("req.parms ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~", req.params)
+  console.log("shortURL~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~", req.params.shortURL)
   res.render("urls_new");
 });
 
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
+});
+
+app.post("/urls/:shortURL/delete", (req, res) => {
+  delete(urlDatabase[req.params.shortURL]);
+  res.redirect("/urls");
 });
 
 // registers a handler on the root path "/"
