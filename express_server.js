@@ -1,10 +1,14 @@
 const express = require('express');
 const app = express();
+const morgan = require('morgan');
+const cookieParser = require('cookie-parser');
 const PORT = 8080; 
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
 app.set("view engine", "ejs");
+app.use(morgan('dev'))
+app.use(cookieParser());
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -37,19 +41,14 @@ app.get("/u/:shortURL", (req, res) => {
 //   res.send(urlDatabase[req.params.shortURL]);         
 // });
 
-app.get("/hello", (req, res) => {
-  const templateVars = { greeting: 'Hello World!' };
-  res.render("hello_world", templateVars);
-});
-
 app.get("/urls/new", (req, res) => {
-  console.log("req.parms ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~", req.params)
-  console.log("shortURL~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~", req.params.shortURL)
+  console.log(req.body.login)
   res.render("urls_new");
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const username = req.cookies.usernameCookie;
+  const templateVars = { urls: urlDatabase, username: username };
   res.render("urls_index", templateVars);
 });
 
@@ -58,10 +57,27 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect("/urls");
 });
 
-app.post("/urls/:shortURL/update", (req, res) => {
-  urlDatabase[req.params.shortURL] = req.body.longURL;
-  res.redirect("/urls");
+//working on displaying username
+app.post("/login", (req, res) => {
+  let templateVars = {
+    username: req.cookies.usernameCookie
+  }
+  res.cookie("usernameCookie", req.body.username );
+  res.redirect('/urls');
 });
+
+app.post("/logout", (req, res) => {
+  res.clearCookie("usernameCookie");
+  res.redirect('/urls');
+});
+
+
+// const templateVars = {
+//   username: req.cookies["username"],
+//   // ... any other vars
+// };
+// res.render("urls_index", templateVars);
+
 
 // registers a handler on the root path "/"
 app.get("/", (req, res) => {
@@ -74,10 +90,6 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}`);
-});
-
 // a json response with the urlDatabase object created earlier
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
@@ -87,3 +99,11 @@ app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
+app.get("/hello", (req, res) => {
+  const templateVars = { greeting: 'Hello World!' };
+  res.render("hello_world", templateVars);
+});
+
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}`);
+});
