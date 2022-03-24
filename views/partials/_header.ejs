@@ -5,25 +5,27 @@
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-      <div class="navbar-nav">
-        <a class="nav-item nav-link" href="/urls">My URLs</a>
-        <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
+      <div class="navbar-nav d-lg-flex justify-content-around w-100 align-items-center">
+        <div class="navbar-nav mr-auto">
+          <a class="nav-item nav-link" href="/urls">My URLs</a>
+          <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
+        </div>
         <% if (username) { %>
           <form class="form-inline" action="/logout" method="POST">
-            <span>Logged in as: <%= username %></span>
+            <span class="mr-2">Logged in as: <%= username %></span>
             <button type="submit" class="btn btn-primary">Logout</button>
           </form>
         <% } else {%>
-          <form class="form-inline" action="/login" method="GET">
-          <div class="form-group mb-2">
-            <button type="submit" class="btn btn-primary">Login</button>
-          </div>
-        </form>
-        <form class="form-inline" action="/register" method="GET">
-          <div class="form-group mb-2">
-            <button type="submit" class="btn btn-primary">Register</button>
-          </div>
-        </form>
+            <form class="form-inline mr-2" action="/login" method="GET">
+            <div class="form-group mb-2">
+              <button type="submit" class="btn btn-primary">Login</button>
+            </div>
+            </form>
+            <form class="form-inline" action="/register" method="GET">
+              <div class="form-group mb-2">
+                <button type="submit" class="btn btn-primary">Register</button>
+              </div>
+            </form>
         <% } %>
       </div>
     </div>
