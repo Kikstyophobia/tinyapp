@@ -48,11 +48,11 @@ const users = {
 const urlDatabase = {
     b6UTxQ: {
         longURL: "https://www.tsn.ca",
-        userID: "aJ48lW"
+        userID: "p6ZDxj"
     },
     i3BoGr: {
         longURL: "https://www.google.ca",
-        userID: "aJ48lW"
+        userID: "p6ZDxj"
     }
 };
 
@@ -178,13 +178,12 @@ app.get("/u/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL;
 
   for (let shortURLs in urlDatabase) {
-    if (shortURL !== urlDatabase[shortURLs]) {
-    return res.send("<html><body><b>Error!</b> Invalid link.</body></html>\n");
-    }
+    if (shortURL === shortURLs) {
+      const longURL = urlDatabase[shortURLs].longURL;
+      res.redirect(longURL);
+    } 
   }
-
-  const longURL = urlDatabase[shortURL].longURL;
-  res.redirect(longURL);
+  return res.send("<html><body><b>Error!</b> Invalid link.</body></html>\n");
 });
 
 
