@@ -23,9 +23,20 @@ const users = {
   }
 };
 
+// const urlDatabase = {
+//   "b2xVn2": "http://www.lighthouselabs.ca",
+//   "9sm5xK": "http://www.google.com"
+// };
+
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+    b6UTxQ: {
+        longURL: "https://www.tsn.ca",
+        userID: "aJ48lW"
+    },
+    i3BoGr: {
+        longURL: "https://www.google.ca",
+        userID: "aJ48lW"
+    }
 };
 
 //// FUNCTIONS
@@ -56,7 +67,20 @@ const passwordChecker = function(password) {
     }
   }
   return false;
-}
+};
+
+const userIDChecker = function(userID) {
+  let shortURL = {};
+
+  for (let info in urlDatabase) {
+    if (userID === urlDatabase[info].userID) {
+      shortURL[info] = urlDatabase[info];
+    } 
+  }
+  return shortURL;
+};
+
+
 
 //// LOGIN / LOGOUT USERS
 app.get("/login", (req, res) => {
@@ -65,17 +89,18 @@ app.get("/login", (req, res) => {
   res.render("login", templateVars);
 });
 
-
+//
 app.post("/login", (req, res) => {
   if (userChecker(req.body.email) && passwordChecker(req.body.password)) {
     res.cookie("userID", userChecker(req.body.email).id);
     res.redirect("/urls");
+
   } else {
     res.send("<html><body><b>403</b> Forbidden request!</body></html>\n");
   }
 });
 
-
+//
 app.post("/login", (req, res) => {
   let templateVars = {
     username: req.cookies.userID
@@ -84,7 +109,7 @@ app.post("/login", (req, res) => {
   res.redirect('/urls');
 });
 
-
+//
 app.post("/logout", (req, res) => {
   res.clearCookie("userID");
   res.redirect('/urls');
@@ -94,6 +119,7 @@ app.post("/logout", (req, res) => {
 
 
 //// REGISTER USERS
+// not required to change urlDatabase
 app.get("/register", (req, res) => {
   const username = req.cookies.userID;
   const templateVars = { urls: urlDatabase, username: username };
@@ -124,62 +150,86 @@ app.post("/register", (req, res) => {
 // URLs
 app.post("/urls", (req, res) => {
   let randomString = generateRandomString();
-  urlDatabase[randomString] = req.body.longURL;
-  res.redirect(`/urls/${randomString}`);
+  let username = req.cookies.userID;
+  if (!username) {
+    return res.send("<html><body><b>Error!</b> Must be logged in to access this page.</body></html>\n");
+  }
+
+  urlDatabase[randomString] = {
+    longURL: req.body.longURL,
+    userID: username
+  }
+
+  res.redirect(`/urls`);
 });
-
-
-app.post("/urls", (req, res) => {
-  res.send(urlDatabase[req.params.shortURL]);         
-});
-
 
 app.get("/urls", (req, res) => {
   const username = req.cookies.userID;
-  const templateVars = { urls: urlDatabase, username: username };
+  if (!username) {
+    return res.send("<html><body><b>Error!</b> Must be logged in to access this page.</body></html>\n");
+  }
+  let usersShortURLs = userIDChecker(username);
+  const templateVars = { urls: usersShortURLs, username: username };
   res.render("urls_index", templateVars);
 });
 
+app.get("/urls/new", (req, res) => {
+  const username = req.cookies.userID;
+ 
+  if (!username) {
+    return res.send("<html><body><b>Error!</b> Must be logged in to edit links.</body></html>\n");
+  } else {
+  const templateVars = { urls: urlDatabase, username: username };
+  res.render("urls_new", templateVars);
+  }
+});
 
+
+// ANYONE CAN VISIT SHORT URLs
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
+  const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
 });
 
-
-app.post("/urls/:id/update", (req,res) => {
-  let shortURL = req.params.id;
-  urlDatabase[shortURL] = req.body.longURL;
-  res.redirect("/urls");
+app.get("/urls/:shortURL", (req, res) => {
+  const username = req.cookies.userID;
+  console.log("req.params",req.params)
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, username };
+  res.render("urls_show", templateVars);
 });
 
-
-app.get("/urls/new", (req, res) => {
+app.post("/urls/:id/update", (req,res) => {
   const username = req.cookies.userID;
-  const templateVars = { urls: urlDatabase, username: username };
-  console.log(req.body.login)
-  res.render("urls_new", templateVars);
+  if (!username) {
+    return res.send("<html><body><b>Error!</b> Must be logged in to update links.</body></html>\n");
+  } 
+
+  let shortURL = req.params.id;
+
+  if (username === urlDatabase[shortURL].userID) {
+    urlDatabase[shortURL].longURL = req.body.longURL;
+    res.redirect("/urls");
+  }
 });
 
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  delete(urlDatabase[req.params.shortURL]);
-  res.redirect("/urls");
+  let username = req.cookies.userID;
+  if (!username) {
+    return res.send("<html><body><b>Error!</b> Must be logged in to delete links.</body></html>\n");
+  }
+
+  let shortURL = req.params.shortURL;
+  console.log("urlDatabase[shortURL].userID", urlDatabase[shortURL].userID)
+  console.log("username", username)
+  
+  if (username === urlDatabase[shortURL].userID) {
+    
+    delete(urlDatabase[req.params.shortURL]);
+    res.redirect("/urls");
+  }
 });
 
-
-
-
-
-app.get("/urls/:shortURL", (req, res) => {
-  const username = req.cookies.userID;
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], username };
-  res.render("urls_show", templateVars);
-});
-
-app.get("*", (req, res) => {
-  res.send("<html><body><b>Error!</b> Page not found.</body></html>\n");
-});
 
 // a json response with the urlDatabase object created earlier
 app.get("/urls.json", (req, res) => {
@@ -197,6 +247,10 @@ app.get("/hello", (req, res) => {
 app.get("/hello", (req, res) => {
   const templateVars = { greeting: 'Hello World!' };
   res.render("hello_world", templateVars);
+});
+
+app.get("*", (req, res) => {
+  res.send("<html><body><b>Error!</b> Page not found.</body></html>\n");
 });
 
 app.listen(PORT, () => {
