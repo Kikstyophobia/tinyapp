@@ -8,10 +8,10 @@ const bcrypt = require('bcryptjs');
 const { 
   getUserByEmail, 
   generateRandomString, 
-  passwordChecker, 
-  userChecker, 
+  userChecker,
+  getUser, 
   userIDChecker 
-} = require("./helpers");
+} = require("./helper/helpers");
 
 
 app.use(bodyParser.urlencoded({extended: true}));
@@ -60,7 +60,7 @@ const urlDatabase = {
 //// LOGIN / LOGOUT USERS
 app.get("/login", (req, res) => {
   const username = req.session.userID;
-  const templateVars = { urls: urlDatabase, username: username };
+  const templateVars = { urls: urlDatabase, user: null };
   res.render("login", templateVars);
 });
 
@@ -85,9 +85,9 @@ app.post("/login", (req, res) => {
 
 // creates cookie after login, redirects to /urls
 app.post("/login", (req, res) => {
-  let templateVars = {
-    username: req.session.userID
-  }
+  // let templateVars = {
+  //   username: req.session.userID
+  // }
   req.session.userID = req.body.username;
   res.redirect('/urls');
 });
@@ -101,8 +101,7 @@ app.post("/logout", (req, res) => {
 
 //// REGISTER USERS
 app.get("/register", (req, res) => {
-  const username = req.session.userID;
-  const templateVars = { urls: urlDatabase, username: username };
+  const templateVars = { urls: urlDatabase, user: null };
   res.render("register", templateVars);
 });
 
@@ -151,24 +150,26 @@ app.post("/urls", (req, res) => {
 // list of urls access to logged in users only
 app.get("/urls", (req, res) => {
   const username = req.session.userID;
-  if (!username) {
-    return res.send("<html><body><b>Error!</b> Must be logged in to access this page.</body></html>\n");
-  }
+  const userObj = getUser(username, users);
   let usersShortURLs = userIDChecker(username, urlDatabase);
-  const templateVars = { urls: usersShortURLs, username: username };
+  
+  const templateVars = { urls: usersShortURLs, user: userObj };
+  if (!username) {
+    res.render("urls-login-error", templateVars);
+  }
   res.render("urls_index", templateVars);
 });
 
 // edit links page, can only be accessed by logged in users
 app.get("/urls/new", (req, res) => {
   const username = req.session.userID;
- 
+  const userObj = getUser(username, users);
+  const templateVars = { urls: urlDatabase, user: userObj };
   if (!username) {
-    return res.send("<html><body><b>Error!</b> Must be logged in to edit links.</body></html>\n");
-  } else {
-  const templateVars = { urls: urlDatabase, username: username };
+  res.render("urls-login-error", templateVars);
+  } 
+
   res.render("urls_new", templateVars);
-  }
 
 });
 
@@ -189,7 +190,15 @@ app.get("/u/:shortURL", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   const username = req.session.userID;
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, username };
+  const shortURL = req.params.shortURL;
+  const longURL = "";
+  let templateVars = { shortURL, longURL, user: username};
+  const userObj = getUser(username, users);
+
+  if (!username) {
+    return res.render("urls-login-error", templateVars);
+  } 
+  templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: userObj };
   res.render("urls_show", templateVars);
 });
 
@@ -223,27 +232,9 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   }
 });
 
-
-
-// a json response with the urlDatabase object created earlier
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-
 // home page is login page
 app.get("/", (req, res) => {
   res.redirect("/login");
-});
-
-// Hello page, not sure if needed
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-});
-
-// Hello page, not sure if needed
-app.get("/hello", (req, res) => {
-  const templateVars = { greeting: 'Hello World!' };
-  res.render("hello_world", templateVars);
 });
 
 // For all other unexpected errors

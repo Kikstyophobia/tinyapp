@@ -31,16 +31,9 @@ const userChecker = function(email, users) {
   return false;
 };
 
-// checks input password = stored password. return true or false
-const passwordChecker = function(password, users) {
-  for (let id in users) {
-
-    if (password === users[id].password) {
-      return true;
-    }
-  }
-  return false;
-};
+const getUser = function(userID, users) {
+  return users[userID];
+}
 
 // generates and returns a random string for ID naming
 function generateRandomString() {
@@ -55,4 +48,4 @@ function generateRandomString() {
 
 
 
-module.exports = { getUserByEmail, generateRandomString, passwordChecker, userChecker, userIDChecker };
+module.exports = { getUserByEmail, generateRandomString, userChecker, userIDChecker, getUser };

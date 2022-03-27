@@ -15,7 +15,6 @@ const testUsers = {
   }
 };
 
-
 describe('getUserByEmail', function() {
   it('should return a user with valid email', function() {
     const userID = getUserByEmail("user@example.com", testUsers)
